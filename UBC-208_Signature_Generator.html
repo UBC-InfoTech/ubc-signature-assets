@@ -1,0 +1,714 @@
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Email Signature Generator — details above, logo below (100x50 logo box)</title>
+  <style>
+    :root {
+      --bg-a: #f5f7fa;
+      --bg-b: #e5e7eb;
+      --card: #0c1329;
+      --text: #111827;
+      --muted: #fff;
+      --accent: #0ea5e9;
+      --border: #e5e7eb;
+      --checker-a: #f0f0f0;
+      --checker-b: #d9d9d9;
+      --checker-dark-a: #2d3748;
+      --checker-dark-b: #1f2937;
+      --select: #2563eb33;
+      --tag-primary: #2563eb;
+      --tag-reverse: #059669;
+  --preview-width: 720px;   /* default preview width */
+  --preview-padding: 24px;  /* space around the signature in the preview */
+}
+
+
+
+    body { margin:0; font-family: Exo, sans-serif; color: var(--text);
+      background: repeating-conic-gradient(var(--bg-b) 0% 25%, var(--bg-a) 0% 50%) 0 0 / 56px 56px fixed; }
+
+    .wrap { max-width: 1120px; margin: 40px auto; padding: 0 20px; }
+    h1 { margin: 0 0 6px; font-size: 24px; }
+    p.lead { margin: 0 0 16px; color:#0c1329; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); padding: 16px 16px 18px; }
+
+    .form-row { display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 10px; margin: 8px 0; }
+    .form-row label { color: var(--muted); font-size: 13px; }
+    .form-row input[type="text"],
+    .form-row input[type="email"],
+    .form-row input[type="tel"],
+    .form-row input[type="url"],
+    .form-row input[type="color"] { box-sizing: border-box; width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .btn { appearance: none; border: 1px solid #d1d5db; background: #111827; color: #fff; border-radius: 8px; padding: 10px 14px; font-weight: 600; cursor: pointer; }
+    .btn.secondary { background: #fff; color: #111827; }
+
+    .section-title { margin: 12px 0 6px; font-size: 13px; font-weight: 700; color: var(--muted); }
+
+    /* Logo library */
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 10px; }
+    .thumb { position: relative; border: 1px solid var(--border); background: #d3d3d3; border-radius: 8px; padding: 8px; cursor: pointer; text-align:center; min-height: 120px; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+    .thumb.selected { outline: 2px solid #2563eb; background: var(--select); }
+    .thumb img { max-width: 100px; max-height: 60px; width: auto; height: auto; display: inline-block; }
+    .labels { position:absolute; left:6px; top:6px; display:flex; gap:4px; }
+    .tag { font-size:10px; color:#d3d3d3; padding:2px 6px; border-radius:999px; }
+    .tag.primary { background: var(--tag-primary); }
+    .tag.reverse { background: var(--tag-reverse); }
+    .tag.warn { background: var(--tag-warn); }
+    .thumb small { display:block; color:#6b7280; margin-top:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+
+    /* Preview */
+    .preview-bg-toggle { display: flex; gap: 8px; align-items: center; margin: 8px 0 14px; }
+    .preview-bg { display: inline-flex; gap: 6px; background: #f3f4f6; border: 1px solid var(--border); border-radius: 999px; padding: 5px; }
+    .preview-bg label { font-size: 12px; color: #374151; padding: 6px 10px; border-radius: 999px; cursor: pointer; }
+    .preview-bg input { display: none; }
+    .preview-bg input:checked + span { background: #111827; color: #fff;
+    .preview-shell { display: grid; place-items: center; margin: 12px auto 0; }
+    .preview-bg { width: min(var(--preview-width), 96vw); border-radius: 14px; overflow: hidden; }
+    .preview-inner { padding: var(--preview-padding); }
+    .control-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+     }
+
+
+    .preview-card { padding: 16px; background: #d3d3d3; border: 1px dashed #d1d5db; border-radius: 10px; }
+    .logo-backdrop { background: repeating-conic-gradient(var(--checker-a) 0% 25%, var(--checker-b) 0% 50%) 0 0 / 20px 20px; padding: 16px; border-radius: 8px; display: inline-block; }
+    .logo-backdrop.dark { background: repeating-conic-gradient(var(--checker-dark-a) 0% 25%, var(--checker-dark-b) 0% 50%) 0 0 / 20px 20px; }
+
+    textarea#htmlOut { width: 100%; min-height: 220px; box-sizing: border-box; font-family: system-ui, -apple-system, Exo, sans-serif; font-size: 12px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
+
+    .helper { font-size:12px; color:#6b7280; }
+
+    .inline-controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:8px; }
+    .inline-controls .chip { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:999px; padding:6px 10px; background:#f9fafb; font-size:12px; }
+    .swatch-chip { display:inline-flex; align-items:center; gap:7px; border:1px solid #d1d5db; border-radius:999px; padding:5px 11px 5px 7px; background:#fff; font-size:12px; color:#111827; cursor:pointer; }
+    .swatch-chip.active { outline:2px solid #2563eb; border-color:#2563eb; }
+    .swatch-dot { width:16px; height:16px; border-radius:50%; border:1px solid rgba(0,0,0,.2); display:inline-block; }
+    .inline-controls input[type="radio"] { vertical-align:middle; }
+
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+<style id="__web-inspector-hide-shortcut-style__">
+.__web-inspector-hide-shortcut__, .__web-inspector-hide-shortcut__ *
+{
+    visibility: hidden !important;
+}
+</style></head>
+<body>
+  <div class="wrap">
+    <h1>Email Signature Generator</h1>
+    <p class="lead">Professional banner-style signature. Name &amp; title sit in a banner colored from the selected logo's brand, contact details and the real company logo sit on white below &mdash; clean black &amp; white, built with bgcolor-backed tables so it holds up in Outlook light <strong>and</strong> dark mode. Export as Outlook-ready HTML or a PNG image.</p>
+
+    <div class="grid">
+      <!-- Left: form -->
+      <section class="card">
+        <div class="form-row"><label for="fullName">Full name*</label><input id="fullName" type="text" placeholder="Heath Treasure" value="Heath Treasure"></div>
+	<div class="form-row"><label for="credentials">Credentials</label><input id="credentials" type="text" placeholder="CFP, MBA" value=""></div>
+        <div class="form-row"><label for="title">Title</label><input id="title" type="text" placeholder="CEO" value="CEO"></div>
+        <div class="form-row"><label for="company">Company</label><input id="company" type="text" placeholder="UBC Freight" value="UBC Freight"></div>
+        <div class="form-row"><label for="email">Email</label><input id="email" type="email" placeholder="heath@ubcfreight.com" value="heath@ubcfreight.com"></div>
+        <div class="form-row"><label for="phone">Phone</label><input id="phone" type="tel" placeholder="(208) 201-5225" value="(208) 201-5225"></div>
+        <div class="form-row"><label for="web">Website</label><input id="web" type="url" placeholder="https://ubcfreight.com" value="https://ubcfreight.com"></div>
+        <div class="form-row"><label for="addr1">Address line 1</label><input id="addr1" type="text" placeholder="3011 S. Lindsay Rd." value="3011 S. Lindsay Rd."></div>
+        <div class="form-row"><label for="addr2">Address line 2</label><input id="addr2" type="text" placeholder="Ste. 102" value="Ste. 102"></div>
+        <div class="form-row"><label for="addr3">Address line 3</label><input id="addr3" type="text" placeholder="Gilbert, AZ 85295" value="Gilbert, AZ 85295"></div>
+        <div class="form-row"><label for="accent">Accent color</label><input id="accent" type="color" value="#000000"></div>
+
+        <div class="section-title">Logo library (Primary &amp; Reverse)</div>
+        <div id="gallery" class="gallery" aria-label="Logo choices"></div>
+        <div class="section-title" id="headerColorTitle" style="display:none;">Header color (UBC palette &mdash; match the logo)</div>
+        <div class="inline-controls" id="headerColorControls" style="display:none;"></div>
+        <p class="helper" id="headerColorHelp" style="display:none; margin-top:4px;">This logo is part of the UBC family. Pick the brand color for the header &mdash; the signature outline matches it automatically.</p>
+
+        <div class="controls" style="margin-top:12px;">
+          <button class="btn" id="copyRichBtn" type="button" title="Copies the rendered signature as rich HTML (best for Outlook desktop)">Copy as Rich HTML</button>
+          <button class="btn secondary" id="openPreviewWindowBtn" type="button" title="Opens the signature in a new window for manual copy">Open in new window</button>
+          <button class="btn secondary" id="downloadBtn" type="button">Download .htm</button>
+          <button class="btn secondary" id="downloadPngBtn" type="button" title="Renders the signature as a PNG image">Download PNG</button>
+        </div>
+        <div class="section-title" style="margin-top:14px;">Logo for PNG export (optional)</div>
+        <div class="inline-controls">
+          <label class="chip" style="cursor:pointer;">
+            <input type="file" id="logoUpload" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none;">
+            Choose logo file&hellip;
+          </label>
+          <span id="logoUploadName" class="helper">No file chosen &mdash; PNG will try the hosted URL.</span>
+        </div>
+        <p class="helper" style="margin-top:6px;">If the hosted logo can&rsquo;t be saved into a PNG (its server blocks cross-origin reads), upload the same image file here once. It&rsquo;s used only for the PNG export and never leaves your browser. The HTML signature always uses the hosted URL.</p>
+        <p class="helper" style="margin-top:8px;">Outlook for Windows works best when you paste <strong>rich HTML</strong> (not code). Use <em>Copy as Rich HTML</em>, then paste into the signature editor. Keep logos hosted via HTTPS with absolute URLs.</p>
+      </section>
+
+      <!-- Right: preview & HTML output -->
+      <section class="card">
+        <div class="preview-bg-toggle" aria-label="Preview background">
+          <span style="font-size:12px; color: #fff;">Preview background:</span>
+          <div class="preview-bg">
+            <label><input type="radio" name="bg" value="light" checked=""><span>Checker (light)</span></label>
+            <label><input type="radio" name="bg" value="dark"><span>Checker (dark)</span></label>
+            <label><input type="radio" name="bg" value="white"><span>White</span></label>
+          </div>
+        </div>
+        <div class="preview-card">
+          <div id="backdrop" class="logo-backdrop" style="">
+            <div id="sigPreview" contenteditable="false"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; font-family: system-ui, -apple-system, Exo, sans-serif; color:#222;"><tbody><tr><td style="vertical-align:top; padding-bottom:10px;"><div style="font-size:14px; line-height:20px; color:#111;"><strong style="color:#0ea5e9">Ada Lovelace</strong><br>Principal Consultant, Contoso Advisors<br><a href="/cdn-cgi/l/email-protection#6e0f0a0f2e0b160f031e020b400d0103" style="color:#111; text-decoration:none;"><span class="__cf_email__" data-cfemail="d6b7b2b796b3aeb7bba6bab3f8b5b9bb">[email&#160;protected]</span></a> · (555) 123-4567<br><a href="https://contoso.com" style="color:#0ea5e9; text-decoration:none;">https://contoso.com</a><br></div></td></tr><tr><td width="100" height="50" style="width:100px; height:50px; vertical-align:middle; text-align:left; line-height:0; mso-line-height-rule:exactly;"><img src="https://szo.zfx.mybluehost.me/website_52b67d32/wp-content/uploads/2025/08/UBC Freight Side Logo Black.png" height="50" alt="Company logo" style="display:block; height:50px; width:auto; max-width:100px; border:0; outline:0; text-decoration:none; -ms-interpolation-mode:bicubic;"></td></tr></tbody></table></div>
+          </div>
+        </div>
+
+        <h3 style="margin:18px 0 8px; font-size:14px; color:#374151;" class="__web-inspector-hide-shortcut__">HTML code (for reference)</h3>
+        <textarea id="htmlOut" readonly="" class="__web-inspector-hide-shortcut__"></textarea>
+      </section>
+    </div>
+
+    <p class="lead" style="margin-top:22px; font-size:12px;">Tips: Use externally hosted HTTPS images; avoid base64 inline images for Outlook Windows. Keep layout table-based with inline styles for maximum compatibility.</p>
+  </div>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    const galleryEl = document.getElementById('gallery');
+
+    // ===== UBC brand palette (from the official color guide) =====
+    // Used as selectable header colors for UBC-affiliated logos.
+    const UBC_PALETTE = [
+      { name: 'Blood Blue', hex: '#1F1D5B' },
+      { name: 'Deep Blue',  hex: '#0C1329' },
+      { name: 'Open Blue',  hex: '#3052A3' },
+      { name: 'Iron Wolf',  hex: '#D3D3D3' },
+      { name: 'Pure White', hex: '#FFFFFF' },
+      { name: 'Black',      hex: '#000000' },
+    ];
+
+    // Preloaded logos.
+    //   brand   : default header color
+    //   ubc:true: this is a UBC-family logo -> show the header-color switcher
+    //   palette : (UBC logos) which palette colors to offer; defaults to all
+    // Preloaded logos, hosted on GitHub (raw CDN sends CORS headers -> PNG export works).
+    //   brand   : default header color
+    //   ubc:true: UBC-family logo -> show the header-color switcher
+    //   light:true: the logo artwork is white/reverse -> needs a dark background to be visible
+    const GH = 'https://raw.githubusercontent.com/UBC-InfoTech/ubc-signature-assets/main/';
+    const logos = [
+      // 1) Blue Collar Masonry (white/reverse art)
+      { url: GH+'bcm.png', label: 'BCM', variant: 'primary', reliable: true, light: true, brand: '#000000' },
+
+      // 2) UBC Advisors (UBC family, white/reverse art)
+      { url: GH+'ubc-advisors.png', label: 'UBC Advisors', variant: 'primary', reliable: true, ubc: true, light: true, brand: '#1F1D5B' },
+
+      // 3) UBC Freight (UBC family, dark art)
+      { url: GH+'ubc-freight.png', label: 'UBC Freight', variant: 'primary', reliable: true, ubc: true, brand: '#000000' },
+
+      // 4) TFC (dark art)
+      { url: GH+'tfc.png', label: 'TFC', variant: 'primary', reliable: true, brand: '#000000' },
+
+      // 5) 208 Capital Holdings (UBC family, dark art)
+      { url: GH+'208.png', label: '208', variant: 'primary', reliable: true, ubc: true, brand: '#1F1D5B' },
+
+      // 6) Ultimate Blue Collar / UBC Holdings (UBC family, white/reverse art)
+      { url: GH+'ubc-holdings.png', label: 'UBC Holdings', variant: 'primary', reliable: true, ubc: true, light: true, brand: '#1F1D5B' },
+
+      // 7) Classic Ultimate Blue Collar (UBC family, dark art)
+      { url: GH+'ubc-classic.png', label: 'Classic UBC', variant: 'primary', reliable: true, ubc: true, brand: '#1F1D5B' },
+
+      // 8) Desert RV Storage & Service (dark art)
+      { url: GH+'desert-rv.png', label: 'Desert RV', variant: 'primary', reliable: true, brand: '#000000' },
+
+      // 9) Daily Driven (dark art)
+      { url: GH+'daily-driven.png', label: 'Daily Driven', variant: 'primary', reliable: true, brand: '#000000' },
+
+      // 10) Total Trailer Co. (dark art)
+      { url: GH+'total-trailer.png', label: 'Total Trailer', variant: 'primary', reliable: true, brand: '#000000' },
+
+      // 11) Total Semi (dark art)
+      { url: GH+'total-semi.png', label: 'Total Semi', variant: 'primary', reliable: true, brand: '#000000' },
+
+      // 12) DRVN Golf Carts (dark art)
+      { url: GH+'drvn.png', label: 'DRVN', variant: 'primary', reliable: true, brand: '#000000' },
+    ];
+
+    let selected = null; // {url, variant, reliable, synthetic}
+    let uploadedLogoDataUri = null; // optional local logo (data URI) used for PNG export
+    let headerColorOverride = null; // chosen header color (UBC switcher); null = use logo.brand
+
+    function escapeHtml(s){return s.replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));}
+
+    // Header text/icon colors adapt to a light vs. dark header background.
+    function isLightColor(hex){
+      const h = hex.replace('#',''); if (h.length !== 6) return false;
+      const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+      // relative luminance
+      const L = (0.2126*r + 0.7152*g + 0.0722*b) / 255;
+      return L > 0.6;
+    }
+    function activeHeaderColor(){
+      if (headerColorOverride) return headerColorOverride;
+      return (selected && selected.brand) ? selected.brand : DEFAULT_BRAND;
+    }
+
+    const BANNER_TEXT = '#ffffff';
+    const DEFAULT_BRAND = '#000000';
+
+    // SVG line icons (white) embedded inline so they survive in Outlook and dark mode.
+    function icon(kind){
+      const c = '#9aa0a6';
+      const wrap = s => 'data:image/svg+xml;base64,' + btoa(s);
+      if (kind === 'phone') return wrap('<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>');
+      if (kind === 'mail')  return wrap('<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>');
+      if (kind === 'pin')   return wrap('<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>');
+      if (kind === 'web')   return wrap('<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>');
+      return '';
+    }
+
+    function contactRow(iconKind, inner){
+      return (
+        '<tr>' +
+        '<td width="20" style="vertical-align:middle; padding:3px 8px 3px 0; line-height:0;">' +
+          '<img src="'+icon(iconKind)+'" width="13" height="13" alt="" style="display:block; border:0;" />' +
+        '</td>' +
+        '<td style="vertical-align:middle; padding:3px 0; font-size:12px; line-height:15px; color:#1a1d21; mso-line-height-rule:exactly;">' + inner + '</td>' +
+        '</tr>'
+      );
+    }
+
+    function buildSignatureHTML(data){
+      const { fullName, title, company, email, phone, web, addr1, addr2, addr3, logo } = data;
+
+      const logoUrl = logo ? logo.url : '';
+      const safeLogo = logoUrl && logoUrl.trim() !== '' ? logoUrl.trim() : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+      const header = activeHeaderColor();
+      const lightHeader = isLightColor(header);
+      const nameColor = lightHeader ? '#111111' : '#ffffff';
+      const subColor  = lightHeader ? '#444444' : '#e6e6e6';
+
+      // Logo footer background:
+      //  - white/reverse logo art -> needs a dark background. Match the header
+      //    color; but if the header itself is light, use a safe dark instead.
+      //  - dark logo art -> white footer (always readable).
+      const logoIsLight = !!(logo && logo.light);
+      const SAFE_DARK = '#0C1329';
+      let footerBg;
+      if (logoIsLight) footerBg = lightHeader ? SAFE_DARK : header;
+      else footerBg = '#ffffff';
+
+      // Single spacing unit so every gap is equal:
+      //   space above name = header bottom->phone = website->logo = below logo
+      const GAP = 12;
+      const SIDE = 14;
+      const W = 300;                 // overall width (matches approved 300px)
+      const logoMaxW = W - SIDE * 2; // width cap for very wide wordmarks
+      const LOGO_H = 30;             // fixed logo height -> band ~matches the header band
+
+      const addrParts = [addr1, addr2, addr3].filter(Boolean).map(escapeHtml).join(', ');
+
+      let rows = '';
+      if (phone) rows += contactRow('phone', escapeHtml(phone));
+      if (email) rows += contactRow('mail', '<a href="mailto:'+escapeHtml(email)+'" style="color:#111111; text-decoration:none;">'+escapeHtml(email)+'</a>');
+      if (addrParts) rows += contactRow('pin', addrParts);
+      if (web) {
+        const webLabel = escapeHtml(web.replace(/^https?:\/\//,''));
+        rows += contactRow('web', '<a href="'+escapeHtml(web)+'" style="color:#111111; text-decoration:none;">'+webLabel+'</a>');
+      }
+
+      // contact rows carry 3px top+bottom each; subtract so visible gaps == GAP
+      const midTop = GAP - 3;
+      const midBottom = GAP - 3;
+
+      return (
+        '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="'+W+'" style="border-collapse:collapse; width:'+W+'px; font-family:Arial, Helvetica, sans-serif; border:2px solid '+header+'; border-radius:6px; overflow:hidden;">' +
+
+        // ===== TOP: header banner (active color), name + title =====
+        '<tr><td bgcolor="'+header+'" style="background:'+header+'; padding:'+GAP+'px '+SIDE+'px;">' +
+          '<div style="font-size:16px; line-height:20px; font-weight:bold; color:'+nameColor+'; letter-spacing:.3px;">'+escapeHtml(fullName)+'</div>' +
+          ((title||company) ? '<div style="font-size:10px; line-height:14px; letter-spacing:1.2px; text-transform:uppercase; color:'+subColor+'; padding-top:2px;">'+escapeHtml(title)+(title&&company?' &middot; ':'')+escapeHtml(company)+'</div>' : '') +
+        '</td></tr>' +
+
+        // ===== MIDDLE: contact details on white =====
+        '<tr><td bgcolor="#ffffff" style="background:#ffffff; padding:'+midTop+'px '+SIDE+'px '+midBottom+'px;">' +
+          '<table role="presentation" cellpadding="0" cellspacing="0" border="0">' + rows + '</table>' +
+        '</td></tr>' +
+
+        // ===== BOTTOM: logo sized by HEIGHT so the band hugs the artwork and
+        //        roughly matches the header band height. Background per rule above. =====
+        '<tr><td bgcolor="'+footerBg+'" style="background:'+footerBg+'; padding:'+GAP+'px '+SIDE+'px; text-align:left; line-height:0;">' +
+          '<img src="'+escapeHtml(safeLogo)+'" height="'+LOGO_H+'" alt="'+escapeHtml(company||'Company')+'" style="display:block; height:'+LOGO_H+'px; width:auto; max-width:'+logoMaxW+'px; border:0; outline:0; text-decoration:none; -ms-interpolation-mode:bicubic;" />' +
+        '</td></tr>' +
+
+        '</table>'
+      );
+    }
+
+    function gather(){
+      return {
+        fullName: document.getElementById('fullName').value || '',
+        title: document.getElementById('title').value || '',
+        company: document.getElementById('company').value || '',
+        email: document.getElementById('email').value || '',
+        phone: document.getElementById('phone').value || '',
+        web: document.getElementById('web').value || '',
+        addr1: document.getElementById('addr1').value || '',
+        addr2: document.getElementById('addr2').value || '',
+        addr3: document.getElementById('addr3').value || '',
+        accent: document.getElementById('accent').value || '#0ea5e9',
+        logo: selected
+      };
+    }
+
+    function renderGallery(){
+      galleryEl.innerHTML = '';
+      logos.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'thumb' + (selected && selected.url === item.url ? ' selected' : '');
+        // Light/reverse logos are invisible on the default light thumb -> dark bg
+        if (item.light) div.style.background = '#0C1329';
+
+        const labels = document.createElement('div');
+        labels.className = 'labels';
+        if (item.ubc) {
+          const tag1 = document.createElement('span');
+          tag1.className = 'tag primary';
+          tag1.textContent = 'UBC';
+          labels.appendChild(tag1);
+        }
+        div.appendChild(labels);
+
+        const img = document.createElement('img');
+        img.src = item.url;
+        img.alt = item.label;
+        div.appendChild(img);
+
+        const cap = document.createElement('small');
+        cap.textContent = item.label;
+        if (item.light) cap.style.color = '#cbd5e1';
+        div.appendChild(cap);
+
+        div.addEventListener('click', () => {
+          selected = item;
+          headerColorOverride = null;       // reset to this logo's default brand
+          renderHeaderColorControls();
+          update();
+          renderGallery();
+        });
+
+        galleryEl.appendChild(div);
+      });
+    }
+
+    // Show the UBC palette switcher only for UBC-family logos.
+    function renderHeaderColorControls(){
+      const title = document.getElementById('headerColorTitle');
+      const wrap  = document.getElementById('headerColorControls');
+      const help  = document.getElementById('headerColorHelp');
+      wrap.innerHTML = '';
+
+      const isUBC = !!(selected && selected.ubc);
+      title.style.display = isUBC ? '' : 'none';
+      wrap.style.display  = isUBC ? 'flex' : 'none';
+      help.style.display  = isUBC ? '' : 'none';
+      if (!isUBC) return;
+
+      const current = activeHeaderColor().toUpperCase();
+      const options = (selected.palette && selected.palette.length)
+        ? UBC_PALETTE.filter(p => selected.palette.includes(p.hex))
+        : UBC_PALETTE;
+
+      options.forEach(p => {
+        const chip = document.createElement('span');
+        chip.className = 'swatch-chip' + (p.hex.toUpperCase() === current ? ' active' : '');
+        const dot = document.createElement('span');
+        dot.className = 'swatch-dot';
+        dot.style.background = p.hex;
+        chip.appendChild(dot);
+        chip.appendChild(document.createTextNode(p.name));
+        chip.addEventListener('click', () => {
+          headerColorOverride = p.hex;
+          renderHeaderColorControls();
+          update();
+        });
+        wrap.appendChild(chip);
+      });
+    }
+
+    async function copyAsRichHTML(){
+      const html = document.getElementById('htmlOut').value;
+      if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+        try {
+          const item = new ClipboardItem({ 'text/html': new Blob([html], {type:'text/html'}), 'text/plain': new Blob([html], {type:'text/plain'}) });
+          await navigator.clipboard.write([item]);
+          alert('Copied as rich HTML. Paste into Outlook\'s signature editor.');
+          return;
+        } catch (e) { console.warn('Clipboard write failed', e); }
+      }
+      openPreviewWindow();
+      alert('A window opened with the rendered signature. Press Ctrl/Cmd + A, then Ctrl/Cmd + C to copy, then paste into Outlook.');
+    }
+
+    function openPreviewWindow(){
+      const html = document.getElementById('htmlOut').value;
+      const win = window.open('', '_blank', 'width=700,height=500');
+      if (!win) return;
+      win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Signature</title></head><body>'+html+'</body></html>');
+      win.document.close();
+    }
+
+    // ===== PNG export: render the Sullivan-style signature onto a canvas =====
+    // Direct <img> loader (used for inline SVG data-URI icons, which never taint).
+    function loadImg(src){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Image failed to load: ' + src));
+        img.src = src;
+      });
+    }
+
+    // CORS-robust loader for the logo. Tries to fetch the bytes and turn them
+    // into a same-origin object URL (which never taints the canvas). Falls back
+    // to anonymous <img>, then to a plain <img>, so we exhaust every option
+    // before giving up.
+    async function loadLogoSafe(url){
+      // 1) fetch -> blob -> objectURL (best: produces an untainted canvas)
+      try {
+        const resp = await fetch(url, { mode: 'cors', cache: 'no-cache' });
+        if (resp.ok) {
+          const blob = await resp.blob();
+          const objUrl = URL.createObjectURL(blob);
+          try {
+            const img = await loadImgPlain(objUrl);
+            return { img, objUrl, tainted: false };
+          } catch(e){ URL.revokeObjectURL(objUrl); }
+        }
+      } catch(e){ /* fall through */ }
+
+      // 2) anonymous crossOrigin <img> (works if host sends ACAO header)
+      try {
+        const img = await loadImg(url);
+        return { img, objUrl: null, tainted: false };
+      } catch(e){ /* fall through */ }
+
+      // 3) plain <img> (will draw, but taints the canvas -> toBlob may fail)
+      const img = await loadImgPlain(url);
+      return { img, objUrl: null, tainted: true };
+    }
+
+    function loadImgPlain(src){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Image failed to load: ' + src));
+        img.src = src;
+      });
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      ctx.beginPath();
+      ctx.moveTo(x+r, y);
+      ctx.arcTo(x+w, y,   x+w, y+h, r);
+      ctx.arcTo(x+w, y+h, x,   y+h, r);
+      ctx.arcTo(x,   y+h, x,   y,   r);
+      ctx.arcTo(x,   y,   x+w, y,   r);
+      ctx.closePath();
+    }
+
+    async function downloadPNG(){
+      const data = gather();
+      const scale = 4; // hi-DPI export
+      const W = 300;
+      const SIDE = 14;
+      const GAP = 12;       // single spacing unit (matches HTML)
+      const logoMaxW = W - SIDE * 2;
+
+      const header = activeHeaderColor();
+      const lightHeader = isLightColor(header);
+      const nameColor = lightHeader ? '#111111' : '#ffffff';
+      const subColor  = lightHeader ? '#444444' : '#e6e6e6';
+
+      // logo footer background (same rule as the HTML build)
+      const logoIsLight = !!(data.logo && data.logo.light);
+      const SAFE_DARK = '#0C1329';
+      const footerBg = logoIsLight ? (lightHeader ? SAFE_DARK : header) : '#ffffff';
+      const nameFont = 16, nameLH = 20;
+      const subFont = 10, subLH = 14;
+      const subGap = 2;     // gap between name and title line
+      const hasSub = !!(data.title || data.company);
+      const headerTextH = nameLH + (hasSub ? subGap + subLH : 0);
+      const bannerH = GAP + headerTextH + GAP;   // equal top & bottom padding
+
+      // --- contact rows ---
+      const rowH = 21;      // per contact line
+      const lines = [];
+      if (data.phone) lines.push({ icon:'phone', text: data.phone });
+      if (data.email) lines.push({ icon:'mail',  text: data.email });
+      const addr = [data.addr1, data.addr2, data.addr3].filter(Boolean).join(', ');
+      if (addr) lines.push({ icon:'pin', text: addr });
+      if (data.web) lines.push({ icon:'web', text: data.web.replace(/^https?:\/\//,'') });
+      const midH = GAP + lines.length * rowH + GAP; // GAP above first row, GAP below last
+
+      // --- load logo (prefer uploaded data URI; it never taints the canvas) ---
+      const hostedUrl = data.logo ? data.logo.url : '';
+      const logoSrc = uploadedLogoDataUri || hostedUrl;
+      let logoInfo = null, logoDrawW = 0, logoDrawH = 0, logoTainted = false, logoObjUrl = null;
+      if (logoSrc) {
+        try {
+          if (uploadedLogoDataUri) {
+            const img = await loadImgPlain(uploadedLogoDataUri); // same-origin data URI
+            logoInfo = { img, objUrl: null, tainted: false };
+          } else {
+            logoInfo = await loadLogoSafe(hostedUrl);
+          }
+          logoTainted = logoInfo.tainted;
+          logoObjUrl = logoInfo.objUrl;
+          const ratio = logoInfo.img.width / logoInfo.img.height;
+          const LOGO_H = 30;                 // match the HTML fixed logo height
+          logoDrawH = LOGO_H;
+          logoDrawW = LOGO_H * ratio;
+          if (logoDrawW > logoMaxW) {         // very wide wordmark -> cap width
+            logoDrawW = logoMaxW;
+            logoDrawH = logoDrawW / ratio;
+          }
+        } catch(e){ console.warn('Logo could not be loaded:', e); }
+      }
+      // footer: GAP above logo and GAP below (equal to header top padding)
+      const footerH = GAP + (logoDrawH > 0 ? logoDrawH : 30) + GAP;
+
+      const H = bannerH + midH + footerH;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = W * scale;
+      canvas.height = H * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+
+      roundRect(ctx, 0, 0, W, H, 8);
+      ctx.clip();
+
+      const brand = header;
+
+      // --- top banner ---
+      ctx.fillStyle = brand;
+      ctx.fillRect(0, 0, W, bannerH);
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = nameColor;
+      ctx.font = 'bold '+nameFont+'px Arial, Helvetica, sans-serif';
+      ctx.fillText(data.fullName || '', SIDE, GAP + nameFont);
+      if (hasSub) {
+        const sub = (data.title || '') + (data.title && data.company ? '  \u00b7  ' : '') + (!data.title ? (data.company||'') : (data.company||''));
+        ctx.fillStyle = subColor;
+        ctx.font = subFont+'px Arial, Helvetica, sans-serif';
+        ctx.fillText(sub.toUpperCase(), SIDE, GAP + nameLH + subGap + subFont);
+      }
+
+      // --- middle (white) ---
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, bannerH, W, midH);
+      const iconImgs = {};
+      for (const l of lines) {
+        if (!iconImgs[l.icon]) { try { iconImgs[l.icon] = await loadImg(icon(l.icon)); } catch(e){ iconImgs[l.icon] = null; } }
+      }
+      let y = bannerH + GAP;
+      ctx.textBaseline = 'middle';
+      ctx.font = '12px Arial, Helvetica, sans-serif';
+      for (const l of lines) {
+        const cy = y + rowH/2;
+        if (iconImgs[l.icon]) ctx.drawImage(iconImgs[l.icon], SIDE, cy - 6.5, 13, 13);
+        ctx.fillStyle = '#111111';
+        ctx.fillText(l.text, SIDE + 21, cy);
+        y += rowH;
+      }
+
+      // --- bottom logo footer, full content width ---
+      const by = bannerH + midH;
+      ctx.fillStyle = footerBg;
+      ctx.fillRect(0, by, W, footerH);
+      if (logoInfo && logoDrawW > 0) {
+        ctx.drawImage(logoInfo.img, SIDE, by + GAP, logoDrawW, logoDrawH);
+      } else if (logoSrc) {
+        ctx.fillStyle = isLightColor(footerBg) ? '#111111' : '#ffffff';
+        ctx.font = 'bold 15px Arial';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(data.company || 'Logo', SIDE, by + footerH/2);
+      }
+
+      // outline matches the header color (2px, like the HTML signature)
+      ctx.strokeStyle = header;
+      ctx.lineWidth = 2;
+      roundRect(ctx, 1, 1, W-2, H-2, 6);
+      ctx.stroke();
+
+      const finish = () => { if (logoObjUrl) URL.revokeObjectURL(logoObjUrl); };
+
+      try {
+        canvas.toBlob((blob) => {
+          finish();
+          if (!blob) { alert('PNG export failed.'); return; }
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = (data.fullName || 'signature').replace(/\s+/g,'_') + '_signature.png';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }, 'image/png');
+      } catch(err){
+        finish();
+        if (logoTainted) {
+          alert('The hosted logo can\'t be saved into a PNG because its server blocks cross-origin reads. Use the "Choose logo file..." button under Download PNG to upload the same image once \u2014 then the PNG will export with the logo. (The HTML signature already shows the logo fine.)');
+        } else {
+          alert('PNG export error: ' + err.message);
+        }
+      }
+    }
+
+    function update(){
+      const data = gather();
+      const html = buildSignatureHTML(data);
+      document.getElementById('sigPreview').innerHTML = html;
+      document.getElementById('htmlOut').value = html;
+    }
+
+    // Background toggle for preview
+    document.querySelectorAll('input[name="bg"]').forEach(rb => {
+      rb.addEventListener('change', () => {
+        const val = document.querySelector('input[name="bg"]:checked').value;
+        const el = document.getElementById('backdrop');
+        el.classList.remove('dark');
+        if (val === 'white') { el.style.background = '#ffffff'; }
+        else if (val === 'dark') { el.classList.add('dark'); el.style.background = ''; }
+        else { el.classList.remove('dark'); el.style.background = ''; }
+      });
+    });
+
+    // Wire up inputs
+    ['fullName','title','company','email','phone','web','addr1','addr2','addr3','accent']
+      .forEach(id => document.getElementById(id).addEventListener('input', update));
+
+    document.getElementById('copyRichBtn').addEventListener('click', copyAsRichHTML);
+    document.getElementById('openPreviewWindowBtn').addEventListener('click', openPreviewWindow);
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const html = document.getElementById('htmlOut').value;
+      const blob = new Blob(['<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>Signature</title></head><body>'+html+'</body></html>'], {type: 'text/html'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'signature.htm'; a.click(); URL.revokeObjectURL(a.href);
+    });
+
+    document.getElementById('downloadPngBtn').addEventListener('click', () => {
+      downloadPNG().catch(e => { console.error(e); alert('PNG export error: ' + e.message); });
+    });
+
+    // Logo upload (for CORS-free PNG export). Read as data URI, kept in-browser only.
+    document.getElementById('logoUpload').addEventListener('change', (ev) => {
+      const file = ev.target.files && ev.target.files[0];
+      const nameEl = document.getElementById('logoUploadName');
+      if (!file) { uploadedLogoDataUri = null; nameEl.textContent = 'No file chosen \u2014 PNG will try the hosted URL.'; return; }
+      const reader = new FileReader();
+      reader.onload = () => { uploadedLogoDataUri = reader.result; nameEl.textContent = file.name + ' \u2014 will be used for PNG export.'; };
+      reader.onerror = () => { uploadedLogoDataUri = null; nameEl.textContent = 'Could not read that file.'; };
+      reader.readAsDataURL(file);
+    });
+
+    // Initialize — default to the UBC Freight logo
+    selected = logos.find(l => l.label === 'UBC Freight') || null;
+    headerColorOverride = null;
+    renderGallery();
+    renderHeaderColorControls();
+    update();
+  </script>
+</body>
+</html>
