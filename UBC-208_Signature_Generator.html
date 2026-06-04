@@ -190,7 +190,7 @@
     const GH = 'https://raw.githubusercontent.com/UBC-InfoTech/ubc-signature-assets/main/';
     const logos = [
       // 1) Blue Collar Masonry (white/reverse art)
-      { url: GH+'bcm.png', label: 'BCM', variant: 'primary', reliable: true, light: true, brand: '#000000' },
+      { url: GH+'bcm.png', label: 'BCM', variant: 'primary', reliable: true, brand: '#000000' },
 
       // 2) UBC Advisors (UBC family, white/reverse art)
       { url: GH+'ubc-advisors.png', label: 'UBC Advisors', variant: 'primary', reliable: true, ubc: true, light: true, brand: '#1F1D5B' },
@@ -201,8 +201,11 @@
       // 4) TFC (dark art)
       { url: GH+'tfc.png', label: 'TFC', variant: 'primary', reliable: true, brand: '#000000' },
 
-      // 5) 208 Capital Holdings (UBC family, dark art)
-      { url: GH+'208.png', label: '208', variant: 'primary', reliable: true, ubc: true, brand: '#1F1D5B' },
+      // 5) 208 Capital Holdings (UBC family, dark art on charcoal bg)
+      { url: GH+'208.png', label: '208', variant: 'primary', reliable: true, ubc: true, brand: '#1F1D5B', logoBgColor: '#1F1F1F', extraColors: [{ name: 'Logo Charcoal', hex: '#1F1F1F' }] },
+
+      // 5b) 208 Capital Holdings (white version: grey wordmark on white bg)
+      { url: GH+'208-white.png', label: '208 (White)', variant: 'primary', reliable: true, ubc: true, brand: '#1F1F1F', logoBgColor: '#FFFFFF', extraColors: [{ name: 'Logo Charcoal', hex: '#1F1F1F' }] },
 
       // 6) Ultimate Blue Collar / UBC Holdings (UBC family, white/reverse art)
       { url: GH+'ubc-holdings.png', label: 'UBC Holdings', variant: 'primary', reliable: true, ubc: true, light: true, brand: '#1F1D5B' },
@@ -265,7 +268,7 @@
         '<td width="20" style="vertical-align:middle; padding:3px 8px 3px 0; line-height:0;">' +
           '<img src="'+icon(iconKind)+'" width="13" height="13" alt="" style="display:block; border:0;" />' +
         '</td>' +
-        '<td style="vertical-align:middle; padding:3px 0; font-size:12px; line-height:15px; color:#1a1d21; mso-line-height-rule:exactly;">' + inner + '</td>' +
+        '<td style="vertical-align:middle; padding:3px 0; font-size:12px; line-height:15px; color:#1a1d21; white-space:nowrap; mso-line-height-rule:exactly;">' + inner + '</td>' +
         '</tr>'
       );
     }
@@ -281,13 +284,15 @@
       const subColor  = lightHeader ? '#444444' : '#e6e6e6';
 
       // Logo footer background:
-      //  - white/reverse logo art -> needs a dark background. Match the header
-      //    color; but if the header itself is light, use a safe dark instead.
-      //  - dark logo art -> white footer (always readable).
+      //  - logoBgColor set -> the logo image has a baked-in background; use that
+      //    exact color so the footer blends seamlessly (e.g. 208's #1F1F1F).
+      //  - white/reverse logo art -> needs a dark background (match header).
+      //  - dark logo art on transparent bg -> white footer.
       const logoIsLight = !!(logo && logo.light);
       const SAFE_DARK = '#0C1329';
       let footerBg;
-      if (logoIsLight) footerBg = lightHeader ? SAFE_DARK : header;
+      if (logo && logo.logoBgColor) footerBg = logo.logoBgColor;
+      else if (logoIsLight) footerBg = lightHeader ? SAFE_DARK : header;
       else footerBg = '#ffffff';
 
       // Single spacing unit so every gap is equal:
@@ -295,8 +300,8 @@
       const GAP = 12;
       const SIDE = 14;
       const W = 300;                 // overall width (matches approved 300px)
-      const logoMaxW = W - SIDE * 2; // width cap for very wide wordmarks
-      const LOGO_H = 30;             // fixed logo height -> band ~matches the header band
+      const logoMaxW = W - SIDE * 2; // logo fills this content width
+      const LOGO_MAX_H = 56;         // cap so portrait/tall logos don't blow up
 
       const addrParts = [addr1, addr2, addr3].filter(Boolean).map(escapeHtml).join(', ');
 
@@ -309,9 +314,17 @@
         rows += contactRow('web', '<a href="'+escapeHtml(web)+'" style="color:#111111; text-decoration:none;">'+webLabel+'</a>');
       }
 
-      // contact rows carry 3px top+bottom each; subtract so visible gaps == GAP
-      const midTop = GAP - 3;
-      const midBottom = GAP - 3;
+      // Gaps inside the white content area:
+      //  - top (header -> phone): keep at GAP-3 (looks right per review)
+      //  - bottom (location -> logo): a touch more breathing room than the top
+      //  - right padding: extra so long lines (address) don't run to the border;
+      //    balances the visual left inset created by the icon column.
+      const footerIsDark = footerBg.toLowerCase() !== '#ffffff';
+      const midTop = GAP - 3;          // 9
+      const BOTTOM_EXTRA = 6;          // bottom gap = top + this
+      const midBottom = footerIsDark ? 0 : (GAP - 3 + BOTTOM_EXTRA);
+      const footerTop = footerIsDark ? (GAP - 3 + BOTTOM_EXTRA) : 0;
+      const midRight = SIDE + 14;      // extra right padding to balance the left icon inset
 
       return (
         '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="'+W+'" style="border-collapse:collapse; width:'+W+'px; font-family:Arial, Helvetica, sans-serif; border:2px solid '+header+'; border-radius:6px; overflow:hidden;">' +
@@ -323,14 +336,15 @@
         '</td></tr>' +
 
         // ===== MIDDLE: contact details on white =====
-        '<tr><td bgcolor="#ffffff" style="background:#ffffff; padding:'+midTop+'px '+SIDE+'px '+midBottom+'px;">' +
+        '<tr><td bgcolor="#ffffff" style="background:#ffffff; padding:'+midTop+'px '+midRight+'px '+midBottom+'px '+SIDE+'px;">' +
           '<table role="presentation" cellpadding="0" cellspacing="0" border="0">' + rows + '</table>' +
         '</td></tr>' +
 
-        // ===== BOTTOM: logo sized by HEIGHT so the band hugs the artwork and
-        //        roughly matches the header band height. Background per rule above. =====
-        '<tr><td bgcolor="'+footerBg+'" style="background:'+footerBg+'; padding:'+GAP+'px '+SIDE+'px; text-align:left; line-height:0;">' +
-          '<img src="'+escapeHtml(safeLogo)+'" height="'+LOGO_H+'" alt="'+escapeHtml(company||'Company')+'" style="display:block; height:'+LOGO_H+'px; width:auto; max-width:'+logoMaxW+'px; border:0; outline:0; text-decoration:none; -ms-interpolation-mode:bicubic;" />' +
+        // ===== BOTTOM: logo fills the content width. The middle cell already
+        //        provides GAP below the last contact row, so the footer adds NO
+        //        top padding (avoids a doubled gap) and GAP below the logo. =====
+        '<tr><td bgcolor="'+footerBg+'" style="background:'+footerBg+'; padding:'+footerTop+'px '+SIDE+'px '+GAP+'px; text-align:left; line-height:0;">' +
+          '<img src="'+escapeHtml(safeLogo)+'" width="'+logoMaxW+'" alt="'+escapeHtml(company||'Company')+'" style="display:block; width:'+logoMaxW+'px; max-width:100%; height:auto; max-height:'+LOGO_MAX_H+'px; border:0; outline:0; text-decoration:none; -ms-interpolation-mode:bicubic;" />' +
         '</td></tr>' +
 
         '</table>'
@@ -407,9 +421,13 @@
       if (!isUBC) return;
 
       const current = activeHeaderColor().toUpperCase();
-      const options = (selected.palette && selected.palette.length)
+      let options = (selected.palette && selected.palette.length)
         ? UBC_PALETTE.filter(p => selected.palette.includes(p.hex))
-        : UBC_PALETTE;
+        : UBC_PALETTE.slice();
+      // Per-logo extra colors (e.g. 208's charcoal that matches its silver mark)
+      if (selected.extraColors && selected.extraColors.length) {
+        options = options.concat(selected.extraColors);
+      }
 
       options.forEach(p => {
         const chip = document.createElement('span');
@@ -510,9 +528,47 @@
       ctx.closePath();
     }
 
+    // CRC32 for PNG chunks
+    const _crcTable = (() => {
+      const t = new Uint32Array(256);
+      for (let n=0; n<256; n++){ let c=n; for (let k=0;k<8;k++){ c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); } t[n]=c>>>0; }
+      return t;
+    })();
+    function crc32(bytes){
+      let c = 0xFFFFFFFF;
+      for (let i=0;i<bytes.length;i++){ c = _crcTable[(c ^ bytes[i]) & 0xFF] ^ (c>>>8); }
+      return (c ^ 0xFFFFFFFF) >>> 0;
+    }
+    // Insert a pHYs chunk so the PNG declares a physical resolution. ppm =
+    // pixels-per-meter; e.g. scale=2 art tagged at 2*2835 ppm displays at half
+    // its pixel size (so a 600px-wide canvas inserts as ~300px / 3.125").
+    async function pngWithDPI(blob, ppm){
+      const buf = new Uint8Array(await blob.arrayBuffer());
+      // PNG signature (8 bytes) then IHDR chunk (length 4 + 'IHDR' 4 + data 13 + crc 4 = 25). pHYs goes after IHDR.
+      const ihdrEnd = 8 + 4 + 4 + 13 + 4;
+      // build pHYs chunk: length(4)=9, type 'pHYs'(4), data(9)=xppm(4)+yppm(4)+unit(1), crc(4)
+      const data = new Uint8Array(9);
+      const dv = new DataView(data.buffer);
+      dv.setUint32(0, ppm); dv.setUint32(4, ppm); data[8] = 1; // unit=1 (meter)
+      const type = new Uint8Array([0x70,0x48,0x59,0x73]); // 'pHYs'
+      const typeAndData = new Uint8Array(type.length + data.length);
+      typeAndData.set(type,0); typeAndData.set(data,type.length);
+      const crc = crc32(typeAndData);
+      const chunk = new Uint8Array(4 + typeAndData.length + 4);
+      const cdv = new DataView(chunk.buffer);
+      cdv.setUint32(0, data.length);
+      chunk.set(typeAndData, 4);
+      cdv.setUint32(4 + typeAndData.length, crc);
+      const out = new Uint8Array(buf.length + chunk.length);
+      out.set(buf.slice(0, ihdrEnd), 0);
+      out.set(chunk, ihdrEnd);
+      out.set(buf.slice(ihdrEnd), ihdrEnd + chunk.length);
+      return new Blob([out], {type:'image/png'});
+    }
+
     async function downloadPNG(){
       const data = gather();
-      const scale = 4; // hi-DPI export
+      const scale = 2; // 2x: crisp on retina, ~half the file size of 4x
       const W = 300;
       const SIDE = 14;
       const GAP = 12;       // single spacing unit (matches HTML)
@@ -526,7 +582,9 @@
       // logo footer background (same rule as the HTML build)
       const logoIsLight = !!(data.logo && data.logo.light);
       const SAFE_DARK = '#0C1329';
-      const footerBg = logoIsLight ? (lightHeader ? SAFE_DARK : header) : '#ffffff';
+      const footerBg = (data.logo && data.logo.logoBgColor)
+        ? data.logo.logoBgColor
+        : (logoIsLight ? (lightHeader ? SAFE_DARK : header) : '#ffffff');
       const nameFont = 16, nameLH = 20;
       const subFont = 10, subLH = 14;
       const subGap = 2;     // gap between name and title line
@@ -542,7 +600,10 @@
       const addr = [data.addr1, data.addr2, data.addr3].filter(Boolean).join(', ');
       if (addr) lines.push({ icon:'pin', text: addr });
       if (data.web) lines.push({ icon:'web', text: data.web.replace(/^https?:\/\//,'') });
-      const midH = GAP + lines.length * rowH + GAP; // GAP above first row, GAP below last
+      // GAP above the first row only. The gap *below* the last row is supplied
+      // by the footer's top GAP (see logo draw below), so it equals the
+      // header->first-row gap exactly instead of doubling.
+      const midH = GAP + lines.length * rowH;
 
       // --- load logo (prefer uploaded data URI; it never taints the canvas) ---
       const hostedUrl = data.logo ? data.logo.url : '';
@@ -559,17 +620,19 @@
           logoTainted = logoInfo.tainted;
           logoObjUrl = logoInfo.objUrl;
           const ratio = logoInfo.img.width / logoInfo.img.height;
-          const LOGO_H = 30;                 // match the HTML fixed logo height
-          logoDrawH = LOGO_H;
-          logoDrawW = LOGO_H * ratio;
-          if (logoDrawW > logoMaxW) {         // very wide wordmark -> cap width
-            logoDrawW = logoMaxW;
-            logoDrawH = logoDrawW / ratio;
+          const MAX_H = 56;                  // cap so portrait/tall logos don't blow up
+          logoDrawW = logoMaxW;              // fill content width
+          logoDrawH = logoDrawW / ratio;
+          if (logoDrawH > MAX_H) {           // tall logo -> cap height, narrow width
+            logoDrawH = MAX_H;
+            logoDrawW = logoDrawH * ratio;
           }
         } catch(e){ console.warn('Logo could not be loaded:', e); }
       }
-      // footer: GAP above logo and GAP below (equal to header top padding)
-      const footerH = GAP + (logoDrawH > 0 ? logoDrawH : 30) + GAP;
+      // footer: (GAP + BOTTOM_EXTRA) above the logo to match the HTML's larger
+      // location->logo gap, GAP below the logo.
+      const BOTTOM_EXTRA = 6;
+      const footerH = (GAP + BOTTOM_EXTRA) + (logoDrawH > 0 ? logoDrawH : 30) + GAP;
 
       const H = bannerH + midH + footerH;
 
@@ -607,21 +670,32 @@
       }
       let y = bannerH + GAP;
       ctx.textBaseline = 'middle';
-      ctx.font = '12px Arial, Helvetica, sans-serif';
+      const textX = SIDE + 21;             // left start of the text (after icon)
+      const RIGHT_BUFFER = SIDE + 14;      // buffer from the right edge (matches HTML midRight)
+      const availW = W - textX - RIGHT_BUFFER;
+      const BASE_FONT = 12, MIN_FONT = 9;  // shrink no smaller than this
       for (const l of lines) {
         const cy = y + rowH/2;
         if (iconImgs[l.icon]) ctx.drawImage(iconImgs[l.icon], SIDE, cy - 6.5, 13, 13);
         ctx.fillStyle = '#111111';
-        ctx.fillText(l.text, SIDE + 21, cy);
+        // Fit the line within availW: shrink font if needed, never wrap, never clip.
+        let fs = BASE_FONT;
+        ctx.font = fs + 'px Arial, Helvetica, sans-serif';
+        while (ctx.measureText(l.text).width > availW && fs > MIN_FONT) {
+          fs -= 0.5;
+          ctx.font = fs + 'px Arial, Helvetica, sans-serif';
+        }
+        ctx.fillText(l.text, textX, cy);
         y += rowH;
       }
+      ctx.font = '12px Arial, Helvetica, sans-serif'; // reset
 
       // --- bottom logo footer, full content width ---
       const by = bannerH + midH;
       ctx.fillStyle = footerBg;
       ctx.fillRect(0, by, W, footerH);
       if (logoInfo && logoDrawW > 0) {
-        ctx.drawImage(logoInfo.img, SIDE, by + GAP, logoDrawW, logoDrawH);
+        ctx.drawImage(logoInfo.img, SIDE, by + GAP + BOTTOM_EXTRA, logoDrawW, logoDrawH);
       } else if (logoSrc) {
         ctx.fillStyle = isLightColor(footerBg) ? '#111111' : '#ffffff';
         ctx.font = 'bold 15px Arial';
@@ -638,11 +712,17 @@
       const finish = () => { if (logoObjUrl) URL.revokeObjectURL(logoObjUrl); };
 
       try {
-        canvas.toBlob((blob) => {
+        canvas.toBlob(async (blob) => {
           finish();
           if (!blob) { alert('PNG export failed.'); return; }
+          // Tag the PNG so it inserts at the intended display size (W x H logical
+          // px) instead of its raw pixel size. 96 DPI = 3780 ppm baseline; at 2x
+          // we tag 2*3780 so a 600px-wide canvas displays as 300px (~3.1").
+          let outBlob = blob;
+          try { outBlob = await pngWithDPI(blob, Math.round(scale * 3780)); }
+          catch(e){ console.warn('DPI tag failed, using untagged PNG', e); }
           const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
+          a.href = URL.createObjectURL(outBlob);
           a.download = (data.fullName || 'signature').replace(/\s+/g,'_') + '_signature.png';
           a.click();
           URL.revokeObjectURL(a.href);
